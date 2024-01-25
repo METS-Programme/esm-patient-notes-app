@@ -83,7 +83,7 @@ export interface SessionData {
     display: string;
     person: DisplayMetadata;
     identifier: string;
-    attributes: Array<{}>;
+    attributes: Array<object>;
     retired: boolean;
     links: Links;
     resourceVersion: string;
