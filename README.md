@@ -1,14 +1,28 @@
-![Node.js CI](https://github.com/METS-Programme/esm-ugandaemr-template-app/workflows/Node.js%20CI/badge.svg)
+# UgandaEMR Esm Patient Notes App
 
-# UgandaEMR Template app
+A frontend module for managing the notes widget. It provides a tabular overview of the visit notes recorded for a patient as well as a form for recording new visit notes.
 
-![Landing page screenshot](./src/assets/images/screen.png)
+# Getting Started
 
-A starter template ESM for UgandaEMR inspired by https://github.com/openmrs/openmrs-esm-template-app.
+```sh
+# Clone the repository
+git clone https://github.com/METS-Programme/esm-patient-notes-app.git
 
-You can use this repo as a template to spawn new frontend modules for UgandaEMR.
+# to install dependencies
+yarn
 
-The current setup works best for setting up polyrepos. To adapt the template for a monorepo setup, you'll need to make the following changes:
+# to run the dev server
+yarn start
 
-- Add a `packages` directory inside of `src`.
+# OR to start on a specified port eg 5000
+yarn start --port 5000
+```
 
+Once it is running, a browser window
+should open with the OpenMRS 3 application. Log in and then navigate to
+`/openmrs/spa/home`.
+
+# Running tests
+```
+yarn run test
+```

@@ -1,0 +1,162 @@
+@use '@carbon/styles/scss/spacing';
+@use '@carbon/styles/scss/type';
+@import '~@openmrs/esm-styleguide/src/vars';
+
+.heading {
+  @include type.type-style("heading-03");
+  margin-bottom: 0.5rem;
+}
+
+.columnLabel {
+  @include type.type-style("heading-compact-02");
+  color: $text-02;
+}
+
+.diagnosis {
+  padding: 0.75rem;
+}
+
+.diagnosisList {
+  margin-top: 0.25rem;
+  background-color: $ui-02;
+  max-height: 14rem;
+  overflow-y: auto;
+  border: 1px solid $ui-03;
+}
+
+.diagnosisList li:hover {
+  background-color: $ui-03;
+}
+
+.diagnosesText {
+  @include type.type-style("body-compact-01");
+  color: $text-02;
+}
+
+.emptyResults {
+  @include type.type-style("body-compact-01");
+  margin-top: 0.25rem;
+  color: $text-02;
+  min-height: 1rem;
+}
+
+.imgUploadHelperText {
+  @include type.type-style("body-compact-01");
+  color: $text-02;
+}
+
+.imgThumbnailContainer {
+  height: 5rem;
+  width: 6rem;
+  margin-top: spacing.$spacing-04;
+}
+
+.imgThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.button {
+  height: 4rem;
+  display: flex;
+  align-content: flex-start;
+  align-items: baseline;
+  min-width: 50%;
+}
+
+.tablet {
+  padding: 1.5rem 1rem;
+  background-color: $ui-02;
+}
+
+.desktop {
+  padding: 0rem;
+}
+
+.headerGridRow {
+  border-bottom: 0.0625rem solid $grey-2;
+  margin: 0;
+}
+
+.dataGridRow {
+  display: grid;
+  grid-template-columns: 50% 10% 1fr;
+  margin: 0.5rem 1rem;
+}
+
+.formContainer {
+  margin: 1rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: var(--desktop-workspace-window-height);
+}
+
+.grid {
+  margin: 0rem;
+  padding: 0rem;
+}
+
+.row {
+  margin: 0.5rem 0rem 2.75rem;
+}
+
+.skeleton {
+  margin-top: 0.25rem;
+  height: 2rem;
+}
+
+.errorMessage {
+  color: $danger;
+}
+
+.diagnosisErrorOutline{
+  :global(.cds--search-input):focus {
+    outline: 2.5px solid $danger
+  }
+
+  :global(.cds--search-magnifier) {
+    svg {
+      fill: $danger
+    }
+  }
+}
+
+.errorMessage {
+  @include type.type-style("label-02");
+  color: $danger;
+  margin-top: 0.5rem;
+}
+
+:global(.omrs-breakpoint-lt-desktop) {
+  .form {
+    height: var(--tablet-workspace-window-height);
+  }
+  
+  .row {
+    display: flex;
+    gap: 4rem;
+
+    :global(.cds--col-sm-1) {
+      flex-basis: 30%;
+      min-width: 8rem;
+      text-align: left;
+    }
+
+    :global(.cds--col-sm-3) {
+      flex-basis: 70%;
+    }
+  }
+
+  .diagnosis {
+    padding: 1rem 0.75rem;
+  }
+
+  .skeleton {
+    height: 2.5rem;
+  }
+}
