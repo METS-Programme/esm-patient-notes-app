@@ -2,12 +2,34 @@
   "$schema": "https://json.openmrs.org/routes.schema.json",
   "backendDependencies": {
     "fhir2": "^1.2.0",
-    "webservices.rest": "^2.24.0"
+    "webservices.rest": "^2.2.0"
   },
-  "pages": [
+  "extensions": [
     {
-      "component": "root",
-      "route": "root"
+      "name": "notes-overview-widget",
+      "component": "notesOverview",
+      "meta": {
+        "columnSpan": 4
+      },
+      "order": 5
+    },
+    {
+      "name": "visit-note-nav-button",
+      "component": "visitNotesActionButton",
+      "slot": "action-menu-chart-items-slot",
+      "order": 1
+    },
+    {
+      "name": "visit-notes-form-workspace",
+      "component": "visitNotesForm",
+      "meta": {
+        "title": {
+          "key": "visitNote",
+          "default": "Visit Note"
+        },
+        "type": "visit-note",
+        "canHide": true
+      }
     }
   ]
 }

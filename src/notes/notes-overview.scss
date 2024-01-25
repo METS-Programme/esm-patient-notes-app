@@ -1,0 +1,40 @@
+@use '@carbon/styles/scss/spacing';
+@use '@carbon/styles/scss/type';
+@import '~@openmrs/esm-styleguide/src/vars';
+
+.widgetCard {
+  border: 1px solid $ui-03;
+}
+
+.expandedRow > td {
+  padding-left: 2.5rem !important;
+}
+
+.expandedRow > td > div {
+  max-height: max-content !important;
+}
+
+.expandedRow th[colspan] td[colspan] > div:first-child {
+  padding: 0 1rem;
+}
+
+.copy {
+  @include type.type-style('body-01');
+  
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  margin: 0.5rem;
+}
+
+.metadata {
+  @include type.type-style('label-01');
+  color: $text-02;
+  margin: 0.5rem 0;
+}
+
+.hiddenRow {
+  display: none;
+}
