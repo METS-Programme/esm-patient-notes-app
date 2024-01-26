@@ -22,6 +22,16 @@ interface UseVisitNotes {
   mutateVisitNotes: () => void;
 }
 
+export interface ConceptAnswer {
+  uuid: string;
+  name: string;
+  display: string;
+}
+
+interface ConceptAnswersResponse {
+  answers?: Array<ConceptAnswer>;
+}
+
 export function useVisitNotes(patientUuid: string): UseVisitNotes {
   const {
     visitNoteConfig: {
@@ -111,4 +121,38 @@ export function savePatientDiagnosis(
     method: "POST",
     body: payload,
   });
+}
+
+export function extractDate(timestamp: string): string {
+  const dateObject = new Date(timestamp);
+  const year = dateObject.getFullYear();
+  const month = (dateObject.getMonth() + 1).toString().padStart(2, "0");
+  const day = dateObject.getDate().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function useConceptAnswers(conceptUuid: string) {
+  const { data, error, isLoading, isValidating } = useSWR<
+    { data: ConceptAnswersResponse },
+    Error
+  >(
+    `/ws/rest/v1/concept/${conceptUuid}`,
+    (url) => (conceptUuid ? openmrsFetch(url) : undefined),
+    {
+      shouldRetryOnError(err) {
+        return err instanceof Response && err.status !== 404;
+      },
+    }
+  );
+
+  const conceptDisplays =
+    data?.data?.answers?.map((answer) => answer.display) ?? [];
+
+  return {
+    conceptAnswers: conceptDisplays,
+    isConceptLoading: isLoading,
+    conceptError: error,
+    isConceptAnswerValidating: isValidating,
+  };
 }

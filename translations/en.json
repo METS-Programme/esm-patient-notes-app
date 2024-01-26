@@ -29,5 +29,8 @@
     "visitNoteNowVisible": "C'est maintenant visible sur la page Rencontres",
     "visitNotes": "Notes de la visite",
     "visitNoteSaved": "Note de la visite enregistrée avec succès",
-    "visitNoteSaveError": "Erreur en sauvegardant la note de visite"
+    "visitNoteSaveError": "Erreur en sauvegardant la note de visite",
+    "poorWeightGain":  "Poor weight gain in the last one month",
+    "contactWithAPersonWithChronicCough": "Contact with a person with Pulmonary Tuberculosis or chronic cough",
+    "reviewBodySystems": "Review of Body Systems"
 }
