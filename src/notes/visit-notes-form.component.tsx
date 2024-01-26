@@ -90,7 +90,6 @@ interface DiagnosisSearchProps {
   handleSearch: (fieldName) => void;
 
   error?: object;
-
 }
 
 const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
