@@ -88,7 +88,9 @@ interface DiagnosisSearchProps {
   placeholder: string;
   control: Control<VisitNotesFormData>;
   handleSearch: (fieldName) => void;
+
   error?: object;
+
 }
 
 const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
