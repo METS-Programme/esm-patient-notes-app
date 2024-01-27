@@ -437,6 +437,65 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             />
           </Column>
         </Row>
+        {age < 5 && (
+          <Row claasName={styles.row}>
+            <Column sm={1}>
+              <span className={styles.columnLabel}>
+                {t("poorWeightGain", "Poor weight gain in the last one month")}
+              </span>
+            </Column>
+            <Column sm={3}>
+              <div style={{ marginBottom: "1.188rem" }}>
+                <RadioButtonGroup
+                  name="poor-weight-gain"
+                  legendText="Choose option"
+                >
+                  <RadioButton
+                    labelText="Yes"
+                    value="poor-weight-gain-1"
+                    id="poor-weight-gain-1"
+                  ></RadioButton>
+                  <RadioButton
+                    labelText="No"
+                    value="poor-weight-gain-2"
+                    id="poor-weight-gain-2"
+                  ></RadioButton>
+                </RadioButtonGroup>
+              </div>
+            </Column>
+          </Row>
+        )}
+        {age < 5 && (
+          <Row className={styles.row}>
+            <Column sm={1}>
+              <span className={styles.columnLabel}>
+                {t(
+                  "contactWithAPersonWithChronicCough",
+                  "Contact with a person with Pulmonary Tuberculosis or chronic cough"
+                )}
+              </span>
+            </Column>
+            <Column sm={3}>
+              <div>
+                <RadioButtonGroup
+                  name="contact-with-person"
+                  legendText="Choose option"
+                >
+                  <RadioButton
+                    labelText="Yes"
+                    value="contact-with-person-1"
+                    id="contact-with-person-1"
+                  ></RadioButton>
+                  <RadioButton
+                    labelText="No"
+                    value="contact-with-person-2"
+                    id="contact-with-person-2"
+                  ></RadioButton>
+                </RadioButtonGroup>
+              </div>
+            </Column>
+          </Row>
+        )}
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>
@@ -672,65 +731,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             </FormGroup>
           </Column>
         </Row>
-        {age < 5 && (
-          <Row claasName={styles.row}>
-            <Column sm={1}>
-              <span className={styles.columnLabel}>
-                {t("poorWeightGain", "Poor weight gain in the last one month")}
-              </span>
-            </Column>
-            <Column sm={3}>
-              <div style={{ marginBottom: "1.188rem" }}>
-                <RadioButtonGroup
-                  name="poor-weight-gain"
-                  legendText="Choose option"
-                >
-                  <RadioButton
-                    labelText="Yes"
-                    value="poor-weight-gain-1"
-                    id="poor-weight-gain-1"
-                  ></RadioButton>
-                  <RadioButton
-                    labelText="No"
-                    value="poor-weight-gain-2"
-                    id="poor-weight-gain-2"
-                  ></RadioButton>
-                </RadioButtonGroup>
-              </div>
-            </Column>
-          </Row>
-        )}
-        {age < 5 && (
-          <Row className={styles.row}>
-            <Column sm={1}>
-              <span className={styles.columnLabel}>
-                {t(
-                  "contactWithAPersonWithChronicCough",
-                  "Contact with a person with Pulmonary Tuberculosis or chronic cough"
-                )}
-              </span>
-            </Column>
-            <Column sm={3}>
-              <div>
-                <RadioButtonGroup
-                  name="contact-with-person"
-                  legendText="Choose option"
-                >
-                  <RadioButton
-                    labelText="Yes"
-                    value="contact-with-person-1"
-                    id="contact-with-person-1"
-                  ></RadioButton>
-                  <RadioButton
-                    labelText="No"
-                    value="contact-with-person-2"
-                    id="contact-with-person-2"
-                  ></RadioButton>
-                </RadioButtonGroup>
-              </div>
-            </Column>
-          </Row>
-        )}
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>
