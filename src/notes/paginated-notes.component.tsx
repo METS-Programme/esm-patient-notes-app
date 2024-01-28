@@ -33,6 +33,16 @@ interface PaginatedNotes {
   urlLabel: string;
 }
 
+interface Note {
+  id: string;
+  encounterDate: string;
+  diagnoses: string;
+  encounterNote?: string;
+  encounterNoteRecordedAt?: string;
+  encounterProvider?: string;
+  encounterProviderRole?: string;
+}
+
 const PaginatedNotes: React.FC<PaginatedNotes> = ({
   notes,
   pageSize,
@@ -94,7 +104,7 @@ const PaginatedNotes: React.FC<PaginatedNotes> = ({
   } = usePagination(sortedData, pageSize);
   const tableRows = React.useMemo(
     () =>
-      paginatedNotes?.map((note) => ({
+      paginatedNotes?.map((note: Note) => ({
         ...note,
         id: `${note.id}`,
         encounterDate: formatDate(parseDate(note.encounterDate), {

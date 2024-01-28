@@ -21,6 +21,9 @@ import {
   Form,
   FormGroup,
   Layer,
+  MultiSelect,
+  RadioButton,
+  RadioButtonGroup,
   Row,
   Search,
   SkeletonText,
@@ -38,6 +41,7 @@ import {
   showSnackbar,
   useConfig,
   useLayoutType,
+  usePatient,
   useSession,
   createAttachment,
 } from "@openmrs/esm-framework";
@@ -50,9 +54,11 @@ import type {
   VisitNotePayload,
 } from "../types";
 import {
+  extractDate,
   fetchConceptDiagnosisByName,
   savePatientDiagnosis,
   saveVisitNote,
+  useConceptAnswers,
   useVisitNotes,
 } from "./visit-notes.resource";
 import styles from "./visit-notes-form.scss";
@@ -82,7 +88,8 @@ interface DiagnosisSearchProps {
   placeholder: string;
   control: Control<VisitNotesFormData>;
   handleSearch: (fieldName) => void;
-  error?: Object;
+
+  error?: object;
 }
 
 const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
@@ -119,6 +126,25 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
   const [combinedDiagnoses, setCombinedDiagnoses] = useState<Array<Diagnosis>>(
     []
   );
+
+  const { conceptAnswers } = useConceptAnswers(
+    "dce0e02a-30ab-102d-86b0-7a5022ba4115"
+  );
+  const { patient } = usePatient(patientUuid);
+  const dateOfBirth = useMemo(() => {
+    return patient ? extractDate(patient.birthDate) : "";
+  }, [patient]);
+  const age = useMemo(() => {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  }, [dateOfBirth]);
+
   const [rows, setRows] = useState<number>();
 
   const { control, handleSubmit, watch, getValues, setValue, formState } =
@@ -411,6 +437,65 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             />
           </Column>
         </Row>
+        {age < 5 && (
+          <Row claasName={styles.row}>
+            <Column sm={1}>
+              <span className={styles.columnLabel}>
+                {t("poorWeightGain", "Poor weight gain in the last one month")}
+              </span>
+            </Column>
+            <Column sm={3}>
+              <div style={{ marginBottom: "1.188rem" }}>
+                <RadioButtonGroup
+                  name="poor-weight-gain"
+                  legendText="Choose option"
+                >
+                  <RadioButton
+                    labelText="Yes"
+                    value="poor-weight-gain-1"
+                    id="poor-weight-gain-1"
+                  ></RadioButton>
+                  <RadioButton
+                    labelText="No"
+                    value="poor-weight-gain-2"
+                    id="poor-weight-gain-2"
+                  ></RadioButton>
+                </RadioButtonGroup>
+              </div>
+            </Column>
+          </Row>
+        )}
+        {age < 5 && (
+          <Row className={styles.row}>
+            <Column sm={1}>
+              <span className={styles.columnLabel}>
+                {t(
+                  "contactWithAPersonWithChronicCough",
+                  "Contact with a person with Pulmonary Tuberculosis or chronic cough"
+                )}
+              </span>
+            </Column>
+            <Column sm={3}>
+              <div>
+                <RadioButtonGroup
+                  name="contact-with-person"
+                  legendText="Choose option"
+                >
+                  <RadioButton
+                    labelText="Yes"
+                    value="contact-with-person-1"
+                    id="contact-with-person-1"
+                  ></RadioButton>
+                  <RadioButton
+                    labelText="No"
+                    value="contact-with-person-2"
+                    id="contact-with-person-2"
+                  ></RadioButton>
+                </RadioButtonGroup>
+              </div>
+            </Column>
+          </Row>
+        )}
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>
@@ -644,6 +729,25 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
                 })()}
               </div>
             </FormGroup>
+          </Column>
+        </Row>
+        <Row className={styles.row}>
+          <Column sm={1}>
+            <span className={styles.columnLabel}>
+              {t("reviewBodySystems", "Review of Body Systems")}
+            </span>
+          </Column>
+          <Column sm={3}>
+            <div style={{ marginTop: "1.188rem" }}>
+              <MultiSelect
+                Label="Review Body Systems"
+                id="reviewBodySystems"
+                items={conceptAnswers}
+                onChange={() => {
+                  // Empty function
+                }}
+              />
+            </div>
           </Column>
         </Row>
         <Row className={styles.row}>

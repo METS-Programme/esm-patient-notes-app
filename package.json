@@ -47,6 +47,7 @@
         "@carbon/react": "^1.33.1",
         "@hookform/resolvers": "^3.3.1",
         "@openmrs/esm-patient-common-lib": "next",
+        "@openmrs/esm-patient-forms-app": "next",
         "@openmrs/openmrs-form-engine-lib": "next",
         "lodash-es": "^4.17.21",
         "react-hook-form": "^7.46.2",
