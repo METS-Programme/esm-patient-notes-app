@@ -1,17 +1,9 @@
-import React, {
-  type SyntheticEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
-import debounce from "lodash-es/debounce";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller, type Control } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Button,
   ButtonSet,
@@ -25,14 +17,10 @@ import {
   RadioButton,
   RadioButtonGroup,
   Row,
-  Search,
-  SkeletonText,
   Stack,
-  Tag,
   TextArea,
-  Tile,
 } from "@carbon/react";
-import { Add, Edit, WarningFilled } from "@carbon/react/icons";
+import { Add, Edit } from "@carbon/react/icons";
 import {
   type UploadedFile,
   createErrorHandler,
@@ -47,16 +35,9 @@ import {
 } from "@openmrs/esm-framework";
 import { type DefaultWorkspaceProps } from "@openmrs/esm-patient-common-lib";
 import type { ConfigObject } from "../config-schema";
-import type {
-  Concept,
-  Diagnosis,
-  DiagnosisPayload,
-  VisitNotePayload,
-} from "../types";
+import type { VisitNotePayload } from "../types";
 import {
   extractDate,
-  fetchConceptDiagnosisByName,
-  savePatientDiagnosis,
   saveVisitNote,
   useConceptAnswers,
   useVisitNotes,
@@ -68,35 +49,17 @@ const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 
 const visitNoteFormSchema = z.object({
   noteDate: z.date(),
-  primaryDiagnosisSearch: z.string({
-    required_error: "Choose at least one primary diagnosis",
-  }),
-  secondaryDiagnosisSearch: z.string().optional(),
   clinicalNote: z.string().optional(),
+  revievwOfBodySystems: z.array(z.string()).optional(),
   image: z.any(),
 });
 
 type VisitNotesFormData = z.infer<typeof visitNoteFormSchema>;
 
-interface DiagnosisSearchProps {
-  name:
-    | "noteDate"
-    | "primaryDiagnosisSearch"
-    | "secondaryDiagnosisSearch"
-    | "clinicalNote";
-  labelText: string;
-  placeholder: string;
-  control: Control<VisitNotesFormData>;
-  handleSearch: (fieldName) => void;
-
-  error?: object;
-}
-
 const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
   closeWorkspace,
   patientUuid,
 }) => {
-  const searchTimeoutInMs = 500;
   const { t } = useTranslation();
   const isTablet = useLayoutType() === "tablet";
   const session = useSession();
@@ -109,23 +72,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
     formConceptUuid,
   } = config.visitNoteConfig;
   const [isHandlingSubmit, setIsHandlingSubmit] = useState(false);
-  const [loadingPrimary, setLoadingPrimary] = useState<boolean>(false);
-  const [loadingSecondary, setLoadingSecondary] = useState<boolean>(false);
-  const [selectedPrimaryDiagnoses, setSelectedPrimaryDiagnoses] = useState<
-    Array<Diagnosis>
-  >([]);
-  const [selectedSecondaryDiagnoses, setSelectedSecondaryDiagnoses] = useState<
-    Array<Diagnosis>
-  >([]);
-  const [searchPrimaryResults, setSearchPrimaryResults] = useState<
-    Array<Concept>
-  >([]);
-  const [searchSecondaryResults, setSearchSecondaryResults] = useState<
-    Array<Concept>
-  >([]);
-  const [combinedDiagnoses, setCombinedDiagnoses] = useState<Array<Diagnosis>>(
-    []
-  );
 
   const { conceptAnswers } = useConceptAnswers(
     "dce0e02a-30ab-102d-86b0-7a5022ba4115"
@@ -147,7 +93,7 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
 
   const [rows, setRows] = useState<number>();
 
-  const { control, handleSubmit, watch, getValues, setValue, formState } =
+  const { control, handleSubmit, watch, setValue } =
     useForm<VisitNotesFormData>({
       mode: "onSubmit",
       resolver: zodResolver(visitNoteFormSchema),
@@ -166,108 +112,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
   const locationUuid = session?.sessionLocation?.uuid;
   const providerUuid = session?.currentProvider?.uuid;
 
-  const handleSearch = (fieldName) => {
-    const fieldQuery = watch(fieldName);
-    if (fieldQuery) {
-      debouncedSearch(fieldQuery, fieldName);
-    }
-  };
-
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((fieldQuery, fieldName) => {
-        if (fieldQuery) {
-          if (fieldName === "primaryDiagnosisSearch") {
-            setLoadingPrimary(true);
-          } else if (fieldName === "secondaryDiagnosisSearch") {
-            setLoadingSecondary(true);
-          }
-          const sub = fetchConceptDiagnosisByName(fieldQuery).subscribe(
-            (matchingConceptDiagnoses: Array<Concept>) => {
-              if (fieldName == "primaryDiagnosisSearch") {
-                setSearchPrimaryResults(matchingConceptDiagnoses);
-                setLoadingPrimary(false);
-              } else if (fieldName == "secondaryDiagnosisSearch") {
-                setSearchSecondaryResults(matchingConceptDiagnoses);
-                setLoadingSecondary(false);
-              }
-            },
-            () => createErrorHandler()
-          );
-          return () => {
-            sub.unsubscribe();
-          };
-        }
-      }, searchTimeoutInMs),
-    []
-  );
-
-  const handleAddDiagnosis = (
-    conceptDiagnosisToAdd: Concept,
-    searchInputField: string
-  ) => {
-    const newDiagnosis = createDiagnosis(conceptDiagnosisToAdd);
-    if (searchInputField == "primaryDiagnosisSearch") {
-      newDiagnosis.rank = 1;
-      setValue("primaryDiagnosisSearch", "");
-      setSearchPrimaryResults([]);
-      setSelectedPrimaryDiagnoses((selectedDiagnoses) => [
-        ...selectedDiagnoses,
-        newDiagnosis,
-      ]);
-    } else if (searchInputField == "secondaryDiagnosisSearch") {
-      setValue("secondaryDiagnosisSearch", "");
-      setSearchSecondaryResults([]);
-      setSelectedSecondaryDiagnoses((selectedDiagnoses) => [
-        ...selectedDiagnoses,
-        newDiagnosis,
-      ]);
-    }
-    setCombinedDiagnoses((diagnosisCombined) => [
-      ...diagnosisCombined,
-      newDiagnosis,
-    ]);
-  };
-
-  const handleRemoveDiagnosis = (
-    diagnosisToRemove: Diagnosis,
-    searchInputField: string
-  ) => {
-    if (searchInputField == "primaryInputSearch") {
-      setSelectedPrimaryDiagnoses(
-        selectedPrimaryDiagnoses.filter(
-          (diagnosis) =>
-            diagnosis.diagnosis.coded !== diagnosisToRemove.diagnosis.coded
-        )
-      );
-    } else if (searchInputField == "secondaryInputSearch") {
-      setSelectedSecondaryDiagnoses(
-        selectedSecondaryDiagnoses.filter(
-          (diagnosis) =>
-            diagnosis.diagnosis.coded !== diagnosisToRemove.diagnosis.coded
-        )
-      );
-    }
-    setCombinedDiagnoses(
-      combinedDiagnoses.filter(
-        (diagnosis) =>
-          diagnosis.diagnosis.coded !== diagnosisToRemove.diagnosis.coded
-      )
-    );
-  };
-
-  const createDiagnosis = (concept: Concept) => {
-    return {
-      patient: patientUuid,
-      diagnosis: {
-        coded: concept.uuid,
-      },
-      rank: 2,
-      certainty: "PROVISIONAL",
-      display: concept.display,
-    };
-  };
-
   const showImageCaptureModal = useCallback(() => {
     const close = showModal("capture-photo-modal", {
       saveFile: (file: UploadedFile) => {
@@ -285,14 +129,9 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
   }, [patientUuid]);
 
   const onSubmit = useCallback(
-    (data: VisitNotesFormData, event: SyntheticEvent) => {
+    (data: VisitNotesFormData) => {
       const { noteDate, clinicalNote } = data;
       setIsHandlingSubmit(true);
-
-      if (!selectedPrimaryDiagnoses.length) {
-        setIsHandlingSubmit(false);
-        return;
-      }
 
       const visitNotePayload: VisitNotePayload = {
         encounterDatetime: dayjs(noteDate).format(),
@@ -318,25 +157,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
 
       const abortController = new AbortController();
       saveVisitNote(abortController, visitNotePayload)
-        .then((response) => {
-          if (response.status === 201) {
-            return Promise.all(
-              combinedDiagnoses.map((diagnosis, position: number) => {
-                const diagnosisPayload: DiagnosisPayload = {
-                  encounter: response.data.uuid,
-                  patient: patientUuid,
-                  condition: null,
-                  diagnosis: {
-                    coded: diagnosis.diagnosis.coded,
-                  },
-                  certainty: diagnosis.certainty,
-                  rank: diagnosis.rank,
-                };
-                return savePatientDiagnosis(abortController, diagnosisPayload);
-              })
-            );
-          }
-        })
         .then(() => {
           if (data.image) {
             return createAttachment(patientUuid, data.image);
@@ -375,7 +195,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
         });
     },
     [
-      selectedPrimaryDiagnoses.length,
       formConceptUuid,
       patientUuid,
       locationUuid,
@@ -383,7 +202,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
       providerUuid,
       encounterTypeUuid,
       encounterNoteTextConceptUuid,
-      combinedDiagnoses,
       mutateVisitNotes,
       closeWorkspace,
       t,
@@ -435,6 +253,25 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
                 </ResponsiveWrapper>
               )}
             />
+          </Column>
+        </Row>
+        <Row className={styles.row}>
+          <Column sm={1}>
+            <span className={styles.columnLabel}>
+              {t("reviewBodySystems", "Review of Body Systems")}
+            </span>
+          </Column>
+          <Column sm={3}>
+            <div style={{ marginTop: "1.188rem" }}>
+              <MultiSelect
+                Label="Review Body Systems"
+                id="reviewBodySystems"
+                items={conceptAnswers}
+                onChange={() => {
+                  // Empty function
+                }}
+              />
+            </div>
           </Column>
         </Row>
         {age < 5 && (
@@ -496,260 +333,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             </Column>
           </Row>
         )}
-        <Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>
-              {t("primaryDiagnosis", "Primary diagnosis")}
-            </span>
-          </Column>
-          <Column sm={3}>
-            <div
-              className={styles.diagnosesText}
-              style={{ marginBottom: "1.188rem" }}
-            >
-              {selectedPrimaryDiagnoses && selectedPrimaryDiagnoses.length ? (
-                <>
-                  {selectedPrimaryDiagnoses.map((diagnosis, index) => (
-                    <Tag
-                      filter
-                      key={index}
-                      onClose={() =>
-                        handleRemoveDiagnosis(diagnosis, "primaryInputSearch")
-                      }
-                      style={{ marginRight: "0.5rem" }}
-                      type={"red"}
-                    >
-                      {diagnosis.display}
-                    </Tag>
-                  ))}
-                </>
-              ) : (
-                <></>
-              )}
-              {selectedSecondaryDiagnoses &&
-              selectedSecondaryDiagnoses.length ? (
-                <>
-                  {selectedSecondaryDiagnoses.map((diagnosis, index) => (
-                    <Tag
-                      filter
-                      key={index}
-                      onClose={() =>
-                        handleRemoveDiagnosis(diagnosis, "secondaryInputSearch")
-                      }
-                      style={{ marginRight: "0.5rem" }}
-                      type={"blue"}
-                    >
-                      {diagnosis.display}
-                    </Tag>
-                  ))}
-                </>
-              ) : (
-                <></>
-              )}
-              {selectedPrimaryDiagnoses &&
-                !selectedPrimaryDiagnoses.length &&
-                selectedSecondaryDiagnoses &&
-                !selectedSecondaryDiagnoses.length && (
-                  <span>
-                    {t(
-                      "emptyDiagnosisText",
-                      "No diagnosis selected — Enter a diagnosis below"
-                    )}
-                  </span>
-                )}
-            </div>
-            <FormGroup
-              legendText={t(
-                "searchForPrimaryDiagnosis",
-                "Search for a primary diagnosis"
-              )}
-            >
-              <DiagnosisSearch
-                name="primaryDiagnosisSearch"
-                control={control}
-                labelText={t(
-                  "enterPrimaryDiagnoses",
-                  "Enter Primary diagnoses"
-                )}
-                placeholder={t(
-                  "primaryDiagnosisInputPlaceholder",
-                  "Choose a primary diagnosis"
-                )}
-                handleSearch={handleSearch}
-                error={formState?.errors?.primaryDiagnosisSearch}
-              />
-              <div>
-                {(() => {
-                  if (!getValues("primaryDiagnosisSearch")) return null;
-                  if (loadingPrimary)
-                    return (
-                      <>
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                      </>
-                    );
-                  if (
-                    !loadingPrimary &&
-                    searchPrimaryResults &&
-                    searchPrimaryResults.length > 0
-                  ) {
-                    return (
-                      <ul className={styles.diagnosisList}>
-                        {searchPrimaryResults.map((diagnosis, index) => (
-                          <li
-                            role="menuitem"
-                            className={styles.diagnosis}
-                            key={index}
-                            onClick={() =>
-                              handleAddDiagnosis(
-                                diagnosis,
-                                "primaryDiagnosisSearch"
-                              )
-                            }
-                          >
-                            {diagnosis.display}
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  }
-                  return (
-                    <>
-                      {isTablet ? (
-                        <Layer>
-                          <Tile className={styles.emptyResults}>
-                            <span>
-                              {t(
-                                "noMatchingDiagnoses",
-                                "No diagnoses found matching"
-                              )}{" "}
-                              <strong>
-                                "{watch("primaryDiagnosisSearch")}"
-                              </strong>
-                            </span>
-                          </Tile>
-                        </Layer>
-                      ) : (
-                        <Tile className={styles.emptyResults}>
-                          <span>
-                            {t(
-                              "noMatchingDiagnoses",
-                              "No diagnoses found matching"
-                            )}{" "}
-                            <strong>"{watch("primaryDiagnosisSearch")}"</strong>
-                          </span>
-                        </Tile>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            </FormGroup>
-          </Column>
-        </Row>
-        <Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>
-              {t("secondaryDiagnosis", "Secondary diagnosis")}
-            </span>
-          </Column>
-          <Column sm={3}>
-            <FormGroup
-              legendText={t(
-                "searchForSecondaryDiagnosis",
-                "Search for a secondary diagnosis"
-              )}
-            >
-              <DiagnosisSearch
-                name="secondaryDiagnosisSearch"
-                control={control}
-                labelText={t(
-                  "enterSecondaryDiagnoses",
-                  "Enter Secondary diagnoses"
-                )}
-                placeholder={t(
-                  "secondaryDiagnosisInputPlaceholder",
-                  "Choose a secondary diagnosis"
-                )}
-                handleSearch={handleSearch}
-              />
-              <div>
-                {(() => {
-                  if (!getValues("secondaryDiagnosisSearch")) return null;
-                  if (loadingSecondary)
-                    return (
-                      <>
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                        <SkeletonText className={styles.skeleton} />
-                      </>
-                    );
-                  if (
-                    !loadingSecondary &&
-                    searchSecondaryResults &&
-                    searchSecondaryResults.length > 0
-                  )
-                    return (
-                      <ul className={styles.diagnosisList}>
-                        {searchSecondaryResults.map((diagnosis, index) => (
-                          <li
-                            role="menuitem"
-                            className={styles.diagnosis}
-                            key={index}
-                            onClick={() =>
-                              handleAddDiagnosis(
-                                diagnosis,
-                                "secondaryDiagnosisSearch"
-                              )
-                            }
-                          >
-                            {diagnosis.display}
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  return (
-                    <ResponsiveWrapper isTablet={isTablet}>
-                      <Tile className={styles.emptyResults}>
-                        <span>
-                          {t(
-                            "noMatchingDiagnoses",
-                            "No diagnoses found matching"
-                          )}{" "}
-                          <strong>"{watch("secondaryDiagnosisSearch")}"</strong>
-                        </span>
-                      </Tile>
-                    </ResponsiveWrapper>
-                  );
-                })()}
-              </div>
-            </FormGroup>
-          </Column>
-        </Row>
-        <Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>
-              {t("reviewBodySystems", "Review of Body Systems")}
-            </span>
-          </Column>
-          <Column sm={3}>
-            <div style={{ marginTop: "1.188rem" }}>
-              <MultiSelect
-                Label="Review Body Systems"
-                id="reviewBodySystems"
-                items={conceptAnswers}
-                onChange={() => {
-                  // Empty function
-                }}
-              />
-            </div>
-          </Column>
-        </Row>
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>{t("note", "Note")}</span>
@@ -852,59 +435,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
 };
 
 export default VisitNotesForm;
-
-function DiagnosisSearch({
-  name,
-  control,
-  labelText,
-  placeholder,
-  handleSearch,
-  error,
-}: DiagnosisSearchProps) {
-  const isTablet = useLayoutType() === "tablet";
-  const inputRef = useRef(null);
-
-  const searchInputFocus = () => {
-    inputRef.current.focus();
-  };
-
-  useEffect(() => {
-    if (error) {
-      searchInputFocus();
-    }
-  }, [error]);
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field: { value, onChange, onBlur }, fieldState }) => (
-        <>
-          <ResponsiveWrapper isTablet={isTablet}>
-            <Search
-              ref={inputRef}
-              size={isTablet ? "lg" : "md"}
-              id={name}
-              labelText={labelText}
-              className={error && styles.diagnosisErrorOutline}
-              placeholder={placeholder}
-              renderIcon={
-                error && ((props) => <WarningFilled fill="red" {...props} />)
-              }
-              onChange={(e) => {
-                onChange(e);
-                handleSearch(name);
-              }}
-              value={value}
-              onBlur={onBlur}
-            />
-          </ResponsiveWrapper>
-          <p className={styles.errorMessage}>{fieldState?.error?.message}</p>
-        </>
-      )}
-    />
-  );
-}
 
 function ResponsiveWrapper({
   children,
