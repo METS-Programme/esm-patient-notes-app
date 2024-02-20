@@ -409,7 +409,63 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             {t("addVisitNote", "Add a visit note")}
           </h2>
         ) : null}
+
         <Row className={styles.row}>
+          <Column sm={1}>
+            <span className={styles.columnLabel}>{t("note", "Note")}</span>
+          </Column>
+          <Column sm={3}>
+            <Controller
+              name="clinicalNote"
+              control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <ResponsiveWrapper isTablet={isTablet}>
+                  <TextArea
+                    id="additionalNote"
+                    rows={rows}
+                    labelText={t("clinicalNoteLabel", "Write your notes")}
+                    placeholder={t(
+                      "clinicalNotePlaceholder",
+                      "Write any notes here"
+                    )}
+                    value={value}
+                    onBlur={onBlur}
+                    onChange={(event) => {
+                      onChange(event);
+                      const textareaLineHeight = 24; // This is the default line height for Carbon's TextArea component
+                      const newRows = Math.ceil(
+                        event.target.scrollHeight / textareaLineHeight
+                      );
+                      setRows(newRows);
+                    }}
+                  />
+                </ResponsiveWrapper>
+              )}
+            />
+          </Column>
+        </Row>
+
+        <Row className={styles.row}>
+          <Column sm={1}>
+            <span className={styles.columnLabel}>
+              {t("reviewBodySystems", "Review of Body Systems")}
+            </span>
+          </Column>
+          <Column sm={3}>
+            <div style={{ marginTop: "1.188rem" }}>
+              <MultiSelect
+                Label="Review Body Systems"
+                id="reviewBodySystems"
+                items={conceptAnswers}
+                onChange={() => {
+                  // Empty function
+                }}
+              />
+            </div>
+          </Column>
+        </Row>
+
+        {/*<Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>{t("date", "Date")}</span>
           </Column>
@@ -436,7 +492,7 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
               )}
             />
           </Column>
-        </Row>
+        </Row>*/}
         {age < 5 && (
           <Row claasName={styles.row}>
             <Column sm={1}>
@@ -731,59 +787,8 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             </FormGroup>
           </Column>
         </Row>
-        <Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>
-              {t("reviewBodySystems", "Review of Body Systems")}
-            </span>
-          </Column>
-          <Column sm={3}>
-            <div style={{ marginTop: "1.188rem" }}>
-              <MultiSelect
-                Label="Review Body Systems"
-                id="reviewBodySystems"
-                items={conceptAnswers}
-                onChange={() => {
-                  // Empty function
-                }}
-              />
-            </div>
-          </Column>
-        </Row>
-        <Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>{t("note", "Note")}</span>
-          </Column>
-          <Column sm={3}>
-            <Controller
-              name="clinicalNote"
-              control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <ResponsiveWrapper isTablet={isTablet}>
-                  <TextArea
-                    id="additionalNote"
-                    rows={rows}
-                    labelText={t("clinicalNoteLabel", "Write your notes")}
-                    placeholder={t(
-                      "clinicalNotePlaceholder",
-                      "Write any notes here"
-                    )}
-                    value={value}
-                    onBlur={onBlur}
-                    onChange={(event) => {
-                      onChange(event);
-                      const textareaLineHeight = 24; // This is the default line height for Carbon's TextArea component
-                      const newRows = Math.ceil(
-                        event.target.scrollHeight / textareaLineHeight
-                      );
-                      setRows(newRows);
-                    }}
-                  />
-                </ResponsiveWrapper>
-              )}
-            />
-          </Column>
-        </Row>
+
+
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>{t("image", "Image")}</span>
@@ -829,6 +834,8 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
           </Column>
         </Row>
       </Stack>
+
+
       <ButtonSet className={isTablet ? styles.tablet : styles.desktop}>
         <Button
           className={styles.button}
