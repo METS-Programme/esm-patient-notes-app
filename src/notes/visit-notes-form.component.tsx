@@ -464,35 +464,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
             </div>
           </Column>
         </Row>
-
-        {/*<Row className={styles.row}>
-          <Column sm={1}>
-            <span className={styles.columnLabel}>{t("date", "Date")}</span>
-          </Column>
-          <Column sm={3}>
-            <Controller
-              name="noteDate"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <ResponsiveWrapper isTablet={isTablet}>
-                  <DatePicker
-                    dateFormat="d/m/Y"
-                    datePickerType="single"
-                    maxDate={new Date().toISOString()}
-                    value={value}
-                    onChange={([date]) => onChange(date)}
-                  >
-                    <DatePickerInput
-                      id="visitDateTimePicker"
-                      labelText={t("visitDate", "Visit date")}
-                      placeholder="dd/mm/yyyy"
-                    />
-                  </DatePicker>
-                </ResponsiveWrapper>
-              )}
-            />
-          </Column>
-        </Row>*/}
         {age < 5 && (
           <Row claasName={styles.row}>
             <Column sm={1}>
@@ -788,7 +759,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
           </Column>
         </Row>
 
-
         <Row className={styles.row}>
           <Column sm={1}>
             <span className={styles.columnLabel}>{t("image", "Image")}</span>
@@ -834,7 +804,6 @@ const VisitNotesForm: React.FC<DefaultWorkspaceProps> = ({
           </Column>
         </Row>
       </Stack>
-
 
       <ButtonSet className={isTablet ? styles.tablet : styles.desktop}>
         <Button
